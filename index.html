@@ -632,14 +632,32 @@
 
         // Danh sách hơn 20 câu năn nỉ
         const pleadingPhrases = [
-            "Đừng từ chối mà! 🥺", "Chị suy nghĩ lại đi...", "Cho em một cơ hội thôi!",
-            "Em hứa sẽ ngoan mà.", "Quay lại với em đi mờ.", "Đi mà chị ui...",
-            "Năn nỉ luôn đó!", "Em biết lỗi rồi.", "Không chịu đâu 😭",
-            "Bấm nút kia kìa 👉", "Đừng bấm nút này nữa!", "Chị hết thương em rồi sao?",
-            "Em nhớ chị muốn xỉu luôn á!", "Trái tim em tan nát mất 💔", "Chị nỡ lòng nào...",
-            "Phải chọn nút đỏ cơ!", "Xin chị đóoooo!", "Một lần cuối thôi mà!",
-            "Em sẽ khóc thật đó 😭", "Nút này bị hỏng rồi!", "Chọn lại đi chị ơi!",
-            "Chị ác quá à nha 🥺", "Làm ơn đi mà...", "Bấm nhầm đúng không?"
+            "Chị đừng bỏ em mà 🥺", "Em ngoan lắm đó nha 😇", "Cho em cơ hội đi mà 🙏",
+            "Chị thương em chút xíu thôi cũng được 💞", "Em đang chờ chị đó ⏳",
+            "Chị mà bấm vậy em buồn lắm 😢", "Đừng làm tim em vỡ nha 💔",
+            "Em sắp khóc rồi đó 😭", "Chị bấm nhầm đúng không 😳",
+            "Chị suy nghĩ lại nha 🥺", "Em chỉ cần chị thôi 💞",
+            "Đừng làm em đau lòng nữa mà 💔", "Em yếu đuối lắm đó 😢",
+            "Chị ơi bấm lại đi mà 😭", "Em năn nỉ luôn đó 🙏",
+            "Chị tốt bụng mà đúng không 😇", "Em tin chị mà 🥺",
+            "Đừng để em buồn nha 😢", "Chị làm em hồi hộp quá 💞",
+            "Em mong chị lắm đó ✨", "Chị chọn lại đi nha 👉",
+            "Em không chịu đâu 😭", "Chị làm vậy em khóc mất 😭",
+            "Em đáng thương lắm đó 🥺", "Chị đừng phũ vậy chứ 💔",
+            "Em đang nhìn chị đó 👀", "Chị làm tim em loạn nhịp 💞",
+            "Đừng lạnh lùng vậy mà 🥺", "Em buồn cả ngày đó 😢",
+            "Chị thương em đi mà 💞", "Em chỉ muốn ở bên chị thôi 🥺",
+            "Đừng bỏ em một mình nha 😭", "Em đang hi vọng đó ✨",
+            "Chị làm em run luôn rồi 😖", "Em chờ mãi luôn đó ⏳",
+            "Chị không nỡ đâu đúng không 🥺", "Em buồn muốn xỉu luôn 😭",
+            "Chị bấm vậy em đau lòng lắm 💔", "Em đang cầu xin đó 🙏",
+            "Chị ơi đừng mà 🥺", "Em khóc thiệt đó 😭",
+            "Chị đừng làm em tuyệt vọng 💔", "Em đáng được thương mà 🥺",
+            "Chị thử lại đi nha 😢", "Em vẫn chờ chị đó ⏳",
+            "Chị làm em nhớ chị hơn nữa 😭", "Em chỉ cần một cái gật đầu thôi 🥺",
+            "Đừng để em cô đơn nha 💔", "Chị làm em hi vọng rồi đó ✨",
+            "Em buồn thật đó 😢", "Chị thương em chút thôi cũng được 🥺",
+            "Em năn nỉ lần cuối đó 🙏", "Chị đừng làm em khóc nữa nha 😭"
         ];
         
         let noClickCount = 0;
@@ -648,7 +666,7 @@
             e.preventDefault();
             noClickCount++;
 
-            if (noClickCount >= 10) {
+            if (noClickCount >= 18) {
                 // Sau 10 lần bấm, biến mất luôn
                 btnNo.style.display = 'none';
                 return;
@@ -660,7 +678,7 @@
 
             // Mỗi lần bấm nút No, nút Yes sẽ to lên một chút để "ép" bấm
             const currentSize = parseFloat(window.getComputedStyle(btnYes).fontSize);
-            btnYes.style.fontSize = (currentSize + 2) + 'px';
+            btnYes.style.fontSize = (currentSize + 1) + 'px';
             btnYes.style.padding = `${12 + noClickCount*2}px ${25 + noClickCount*4}px`;
 
             // Lấy kích thước màn hình hiện tại
