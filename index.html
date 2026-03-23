@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gửi Chị...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Container cho các màn hình */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .screen.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Hiệu ứng chung */
+        .fade-in {
+            animation: fadeIn 1.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Nút bấm */
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Screen 1: Loading */
+        #loading-text {
+            font-size: 1.4rem;
+            min-height: 60px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .progress-bar {
+            width: 250px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #ff758c;
+            transition: width 0.1s linear;
+        }
+
+        /* Screen 2: Kỷ niệm */
+        .memory-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            opacity: 0;
+        }
+        .capoo-gif {
+            width: 150px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Screen 3: Tâm sự (Typewriter) */
+        #typewriter-text {
+            font-size: 1.25rem;
+            line-height: 1.9;
+            text-align: left;
+            max-width: 400px;
+            min-height: 350px;
+            margin: 0 auto;
+            white-space: pre-wrap; /* Đổi thành pre-wrap để vừa giữ xuống dòng vừa tự gập chữ */
+            word-wrap: break-word; /* Ép chữ tự xuống hàng khi chạm rìa */
+        }
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background-color: white;
+            animation: blink 0.75s step-end infinite;
+            vertical-align: text-bottom;
+        }
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Screen 4: Nhập tên */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        input[type="text"] {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-bottom: 2px solid #ff758c;
+            color: #fff;
+            font-size: 1.3rem;
+            padding: 10px;
+            text-align: center;
+            width: 250px;
+            outline: none;
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Screen 5: Thư Popup */
+        #letter-popup {
+            background: #fff;
+            color: #333;
+            max-width: 450px;
+            width: 90%;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: left;
+            position: relative;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .screen.active #letter-popup {
+            transform: scale(1);
+        }
+        #letter-content {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            height: 300px; /* Cố định chiều cao thay vì min-height */
+            overflow-y: auto; /* Thêm thanh cuộn dọc */
+            padding-right: 10px; /* Tạo khoảng trống không bị dính vào thanh cuộn */
+            white-space: normal; /* Tránh giữ khoảng trắng/indent từ HTML làm chữ bị thụt */
+            overflow-wrap: break-word;
+        }
+        
+        /* Làm đẹp thanh cuộn */
+        #letter-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        #letter-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        #letter-content::-webkit-scrollbar-thumb {
+            background: #ffb6c1;
+            border-radius: 10px;
+        }
+        #letter-content::-webkit-scrollbar-thumb:hover {
+            background: #ff758c;
+        }
+
+        .salutation {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            color: #ff4d6d;
+            margin-bottom: 15px;
+        }
+        .letter-btn {
+            background: #ff4d6d;
+            color: white;
+            border: none;
+            width: 100%;
+        }
+        .letter-btn:hover {
+            background: #ff758c;
+        }
+
+        /* Screen 6: Câu hỏi cuối */
+        .final-question {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            min-height: 100px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .btn-yes {
+            background: #ff4d6d;
+            border-color: #ff4d6d;
+        }
+        .btn-yes:hover {
+            background: #ff758c;
+            border-color: #ff758c;
+        }
+        .btn-no {
+            background: #333;
+            border-color: #555;
+            transition: 0.2s; /* Nhanh hơn để chạy mượt */
+            position: relative;
+            z-index: 100;
+        }
+
+        /* Màn hình kết thúc */
+        .final-content-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            z-index: 2; /* Đảm bảo nổi lên trên trái tim */
+            max-height: 65vh; /* Giới hạn chiều cao hộp kính để không bị tràn khỏi điện thoại */
+            overflow-y: auto; /* Thêm thanh cuộn nếu nội dung vẫn quá dài */
+        }
+
+        /* Làm đẹp thanh cuộn cho hộp kết thúc */
+        .final-content-box::-webkit-scrollbar { width: 5px; }
+        .final-content-box::-webkit-scrollbar-track { background: transparent; }
+        .final-content-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); border-radius: 10px; }
+
+        .final-message {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .strong-quote {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+            margin-top: 30px;
+            line-height: 1.4;
+        }
+
+        /* Hiệu ứng trái tim rơi */
+        .heart {
+            position: fixed;
+            top: -10vh;
+            font-size: 1.5rem;
+            animation: fall linear forwards;
+            z-index: 1;
+            opacity: 0.6;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        /* --- TỐI ƯU HÓA CHO ĐIỆN THOẠI (MOBILE RESPONSIVE) --- */
+        @media (max-width: 600px) {
+            .final-message {
+                font-size: 1.3rem; /* Thu nhỏ chữ lại một chút */
+                margin-bottom: 15px;
+            }
+            .strong-quote {
+                font-size: 1.6rem; /* Thu nhỏ chữ lại một chút */
+                margin-top: 15px;
+            }
+            .final-content-box {
+                padding: 20px 15px;
+            }
+            #letter-content {
+                height: 250px; /* Thư ngắn lại để không bị lấn nút bấm trên màn hình nhỏ */
+                font-size: 1.05rem;
+            }
+            .salutation {
+                font-size: 1.6rem;
+            }
+            .btn-yes, .btn-no {
+                font-size: 1rem;
+                padding: 10px 18px;
+            }
+            .final-question {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Nhạc nền phần 1 (Chạy từ đầu) -->
+    <audio id="bgMusic1" loop>
+        <source src="./audio/chungtacuasaunay.MP3" type="audio/mpeg">
+    </audio>
+
+    <!-- Nhạc nền phần 2 (Chạy khi bấm Quay lại) -->
+    <audio id="bgMusic2" loop>
+        <source src="./audio/lovesong.m4a" type="audio/mpeg">
+    </audio>
+
+    <!-- Màn hình 1: Loading -->
+    <div id="screen1" class="screen active">
+        <img id="waiting-capoo" src="https://i.pinimg.com/originals/ef/20/91/ef20915f2cdafdb22805c2b6ad920af3.gif" alt="Capoo Waiting" class="capoo-gif" style="width: 150px; margin-bottom: 20px;">
+        <div id="loading-text"></div>
+        <div id="progress-wrapper" style="opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center;">
+            <div id="loading-percent" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #ff758c;">0%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        <button id="btn-start" style="display: none; opacity: 0; transition: opacity 1s;">👉 Chị bấm vào đây nhé…</button>
+    </div>
+
+    <!-- Màn hình 2: Kỷ niệm -->
+    <div id="screen2" class="screen">
+        <img src="https://i.pinimg.com/originals/0b/85/59/0b85591bebfe8e66f905362ff2199a2f.gif" alt="Sad Capoo" class="capoo-gif">
+        <div class="memory-text" id="mText1">Từ khi mình chia tay...</div>
+        <div class="memory-text" id="mText2">Em mới nhận ra<br>chị quan trọng với em đến mức nào.</div>
+        <div class="memory-text" id="mText3">Những ngày không có chị<br>mọi thứ đều trở nên trống rỗng.</div>
+        <button id="btn-next2" style="display: none; opacity: 0; transition: opacity 1s;">👉 Em muốn nói thêm…</button>
+    </div>
+
+    <!-- Màn hình 3: Tâm sự (Typewriter) -->
+    <div id="screen3" class="screen">
+        <div style="max-width: 400px; text-align: left;">
+            <span id="typewriter-text"></span><span class="cursor"></span>
+        </div>
+        <button id="btn-next3" style="display: none; opacity: 0; transition: opacity 1s;">👉 Tiếp tục...</button>
+    </div>
+
+    <!-- Màn hình 4: Nhập tên -->
+    <div id="screen4" class="screen">
+        <img src="https://media2.giphy.com/media/Z3Op6V4KdP7ZQWft5O/source.gif" alt="Capoo Cute" class="capoo-gif" style="width: 120px;">
+        <div class="input-group">
+            <label for="herName" style="font-size: 1.2rem;">Tên của chị là...</label>
+            <input type="text" id="herName" placeholder="Nhập tên chị vào đây" autocomplete="off">
+            <button id="btn-send-name">Gửi cho chị 💌</button>
+        </div>
+    </div>
+
+    <!-- Màn hình 5: Thư Popup -->
+    <div id="screen5" class="screen">
+        <div id="letter-popup">
+            <div class="salutation">Gửi chị <span id="display-name">chị</span> yêu của em,</div>
+            <div id="letter-content">
+                <span id="letter-tw-text"></span><span class="cursor"></span>
+            </div>
+            <button class="letter-btn" id="btn-read-done" style="display: none; opacity: 0; transition: opacity 1s;">Em đợi câu trả lời của chị...</button>
+        </div>
+    </div>
+
+    <!-- Màn hình 6: Câu hỏi cuối -->
+    <div id="screen6" class="screen">
+        <div class="final-question">Chị ơi, mình quay lại với nhau nhé?</div>
+        <div class="buttons-container" id="btn-container">
+            <button class="btn-yes" id="btn-yes">❤️ Quay lại với em nhé</button>
+            <button class="btn-no" id="btn-no">💔 Chị cần thêm thời gian</button>
+        </div>
+    </div>
+
+    <!-- Màn hình 7: Happy Ending -->
+    <div id="screen7" class="screen">
+        <img src="https://media.tenor.com/1VCr718khIMAAAAj/love-bug-cat.gif" alt="Happy Capoo Hug" class="capoo-gif" style="width: 200px; z-index: 2;">
+        <div class="final-content-box fade-in" style="animation-delay: 0.5s; opacity: 0;">
+            <div class="final-message">
+                Em biết chị vẫn thương em mà.<br>
+                Cảm ơn chị vì đã quay lại với em ❤️
+            </div>
+            <div class="strong-quote fade-in" style="animation-delay: 1.5s; opacity: 0;">
+                "Nếu được chọn lại một lần nữa<br>
+                em vẫn sẽ chọn yêu chị.<br><br>
+                Chỉ là lần này<br>
+                em sẽ không để chị rời đi nữa."
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript Logic -->
+    <script>
+        // Khởi tạo các biến
+        const bgMusic1 = document.getElementById('bgMusic1');
+        const bgMusic2 = document.getElementById('bgMusic2');
+        bgMusic1.volume = 0.5; // Âm lượng 50%
+        bgMusic2.volume = 0.5;
+
+        function switchScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            setTimeout(() => {
+                document.getElementById(toId).classList.add('active');
+            }, 1000); // Đợi màn hình cũ mờ hẳn mới hiện màn mới
+        }
+
+        // --- MÀN HÌNH 1: LOADING ---
+        const loadingTexts = [
+            "Em có vài điều muốn nói với chị…",
+            "Những ngày qua em nghĩ rất nhiều…",
+            "Nếu chị còn ở đây… hãy nghe em nói hết nhé…"
+        ];
+        const loadingTextEl = document.getElementById('loading-text');
+        const progressFill = document.getElementById('progress-fill');
+        const btnStart = document.getElementById('btn-start');
+        
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const percentText = document.getElementById('loading-percent');
+        const waitingCapoo = document.getElementById('waiting-capoo');
+
+        let textIndex = 0;
+
+        // Bước 1: Chạy thanh loading trước
+        function startLoadingBar() {
+            progressWrapper.style.opacity = 1; // Hiện cụm thanh loading
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1; // Tăng 1% mỗi lần cho mượt
+                progressFill.style.width = progress + '%';
+                percentText.innerText = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    btnStart.style.display = 'inline-block';
+                    setTimeout(() => {
+                        btnStart.style.opacity = 1;
+                    }, 100);
+                }
+            }, 20); // 20ms * 100 = 2 giây để chạy từ 1% - 100%
+        }
+
+        // Bước 2: Hiển thị các dòng chữ tâm sự
+        function showLoadingText() {
+            if (textIndex < loadingTexts.length) {
+                loadingTextEl.style.opacity = 0;
+                setTimeout(() => {
+                    loadingTextEl.innerText = loadingTexts[textIndex];
+                    loadingTextEl.style.transition = "opacity 1s";
+                    loadingTextEl.style.opacity = 1;
+                    
+                    setTimeout(() => {
+                        loadingTextEl.style.opacity = 0;
+                        textIndex++;
+                        setTimeout(showLoadingText, 1000);
+                    }, 2500); // Chữ hiện 2.5 giây
+                }, 1000);
+            } else {
+                // Chạy xong chữ thì chuyển sang màn hình Kỷ niệm
+                switchScreen('screen1', 'screen2');
+                startScreen2();
+                createHearts(); // Bắt đầu thả tim rớt
+            }
+        }
+        
+        // Bắt đầu ngay khi load web bằng thanh loading
+        setTimeout(startLoadingBar, 500);
+
+        // Click Start -> Ẩn thanh loading, Bật nhạc -> Bắt đầu hiện chữ
+        btnStart.addEventListener('click', () => {
+            bgMusic1.play().catch(e => console.log("Trình duyệt chặn autoplay âm thanh."));
+            
+            // Ẩn ảnh Capoo, thanh loading và nút bấm
+            waitingCapoo.style.transition = "opacity 0.5s";
+            waitingCapoo.style.opacity = 0;
+            progressWrapper.style.opacity = 0;
+            btnStart.style.opacity = 0;
+
+            // Đợi mờ hẳn rồi xóa khỏi khung hình và gọi hàm hiện chữ
+            setTimeout(() => {
+                waitingCapoo.style.display = "none";
+                progressWrapper.style.display = "none";
+                btnStart.style.display = "none";
+                
+                showLoadingText();
+            }, 500);
+        });
+
+
+        // --- MÀN HÌNH 2: KỶ NIỆM ---
+        function startScreen2() {
+            setTimeout(() => {
+                document.getElementById('mText1').style.transition = "opacity 1.5s";
+                document.getElementById('mText1').style.opacity = 1;
+            }, 1500);
+            setTimeout(() => {
+                document.getElementById('mText2').style.transition = "opacity 1.5s";
+                document.getElementById('mText2').style.opacity = 1;
+            }, 4000);
+            setTimeout(() => {
+                document.getElementById('mText3').style.transition = "opacity 1.5s";
+                document.getElementById('mText3').style.opacity = 1;
+            }, 7000);
+            setTimeout(() => {
+                const btn = document.getElementById('btn-next2');
+                btn.style.display = 'inline-block';
+                setTimeout(() => btn.style.opacity = 1, 100);
+            }, 9500);
+        }
+
+        document.getElementById('btn-next2').addEventListener('click', () => {
+            switchScreen('screen2', 'screen3');
+            setTimeout(startTypewriter, 1500);
+        });
+
+
+        // --- MÀN HÌNH 3: TYPEWRITER ---
+        const twText = "Em nhớ chị rất nhiều.\n\nNhớ cách chị cười.\nNhớ cách chị gọi em là \"bé\".\nNhớ cả những lần mình giận nhau.\n\nCó những đêm em nằm mơ\nvẫn thấy chị ở bên cạnh.\n\nNhưng khi tỉnh dậy\nchỉ còn lại sự trống vắng.";
+        const twContainer = document.getElementById('typewriter-text');
+        let twIndex = 0;
+
+        function startTypewriter() {
+            if (twIndex < twText.length) {
+                let char = twText.charAt(twIndex);
+                if (char === '\n') {
+                    twContainer.innerHTML += '<br>';
+                } else {
+                    twContainer.innerHTML += char;
+                }
+                twIndex++;
+                let speed = char === '\n' ? 400 : 70; // Ngắt nghỉ khi xuống dòng
+                setTimeout(startTypewriter, speed);
+            } else {
+                setTimeout(() => {
+                    const btn = document.getElementById('btn-next3');
+                    btn.style.display = 'inline-block';
+                    setTimeout(() => btn.style.opacity = 1, 100);
+                }, 1000);
+            }
+        }
+
+        document.getElementById('btn-next3').addEventListener('click', () => {
+            switchScreen('screen3', 'screen4');
+        });
+
+
+        // --- MÀN HÌNH 4 & 5: NHẬP TÊN & LÁ THƯ ---
+        document.getElementById('btn-send-name').addEventListener('click', () => {
+            const name = document.getElementById('herName').value.trim() || 'chị';
+            document.getElementById('display-name').innerText = name;
+            switchScreen('screen4', 'screen5');
+            // Đợi popup mở ra xong (khoảng 1.2s) rồi mới bắt đầu gõ chữ
+            setTimeout(typeLetter, 1200);
+        });
+
+        // Nội dung và logic gõ chữ cho lá thư
+        const letterTwText = "Có thể em đã sai rất nhiều và đã làm chị tổn thương.\n\nNhưng thật sự em chưa từng hết yêu chị.\n\nNhững ngày qua em nhớ chị đến mức ngay cả trong giấc mơ em cũng mong được gặp chị.\n\nNếu chị vẫn còn một chút tình cảm\nmình có thể cho nhau thêm một cơ hội không?\n\nEm thật sự muốn được nắm tay chị thêm một lần nữa.\n\nEm nhớ chị lắm.";
+        const letterTwContainer = document.getElementById('letter-tw-text');
+        const letterContentDiv = document.getElementById('letter-content');
+        let letterTwIndex = 0;
+
+        function typeLetter() {
+            if (letterTwIndex < letterTwText.length) {
+                let char = letterTwText.charAt(letterTwIndex);
+                if (char === '\n') {
+                    letterTwContainer.innerHTML += '<br>';
+                } else {
+                    letterTwContainer.innerHTML += char;
+                }
+                letterTwIndex++;
+                
+                // Tự động cuộn thanh kéo xuống theo dòng chữ đang gõ
+                letterContentDiv.scrollTop = letterContentDiv.scrollHeight;
+
+                let speed = char === '\n' ? 300 : 40; // Nghỉ một chút khi xuống dòng
+                setTimeout(typeLetter, speed);
+            } else {
+                // In đậm dòng cuối cùng
+                letterTwContainer.innerHTML = letterTwContainer.innerHTML.replace("Em nhớ chị lắm.", "<b>Em nhớ chị lắm.</b>");
+                
+                // Gõ xong mới hiện nút bấm tiếp tục
+                const btn = document.getElementById('btn-read-done');
+                btn.style.display = 'inline-block';
+                setTimeout(() => btn.style.opacity = 1, 100);
+            }
+        }
+
+        document.getElementById('btn-read-done').addEventListener('click', () => {
+            switchScreen('screen5', 'screen6');
+            setupNoButton();
+        });
+
+
+        // --- MÀN HÌNH 6: NÚT CHẠY TRỐN ---
+        const btnNo = document.getElementById('btn-no');
+        const btnYes = document.getElementById('btn-yes');
+        const container = document.getElementById('btn-container');
+
+        // Danh sách hơn 20 câu năn nỉ
+        const pleadingPhrases = [
+            "Đừng từ chối mà! 🥺", "Chị suy nghĩ lại đi...", "Cho em một cơ hội thôi!",
+            "Em hứa sẽ ngoan mà.", "Quay lại với em đi mờ.", "Đi mà chị ui...",
+            "Năn nỉ luôn đó!", "Em biết lỗi rồi.", "Không chịu đâu 😭",
+            "Bấm nút kia kìa 👉", "Đừng bấm nút này nữa!", "Chị hết thương em rồi sao?",
+            "Em nhớ chị muốn xỉu luôn á!", "Trái tim em tan nát mất 💔", "Chị nỡ lòng nào...",
+            "Phải chọn nút đỏ cơ!", "Xin chị đóoooo!", "Một lần cuối thôi mà!",
+            "Em sẽ khóc thật đó 😭", "Nút này bị hỏng rồi!", "Chọn lại đi chị ơi!",
+            "Chị ác quá à nha 🥺", "Làm ơn đi mà...", "Bấm nhầm đúng không?"
+        ];
+        
+        let noClickCount = 0;
+
+        function handleNoAction(e) {
+            e.preventDefault();
+            noClickCount++;
+
+            if (noClickCount >= 10) {
+                // Sau 10 lần bấm, biến mất luôn
+                btnNo.style.display = 'none';
+                return;
+            }
+
+            // Đổi chữ ngẫu nhiên
+            const randomText = pleadingPhrases[Math.floor(Math.random() * pleadingPhrases.length)];
+            btnNo.innerText = randomText;
+
+            // Mỗi lần bấm nút No, nút Yes sẽ to lên một chút để "ép" bấm
+            const currentSize = parseFloat(window.getComputedStyle(btnYes).fontSize);
+            btnYes.style.fontSize = (currentSize + 2) + 'px';
+            btnYes.style.padding = `${12 + noClickCount*2}px ${25 + noClickCount*4}px`;
+
+            // Lấy kích thước màn hình hiện tại
+            const maxX = window.innerWidth - btnNo.clientWidth - 20;
+            const maxY = window.innerHeight - btnNo.clientHeight - 20;
+
+            // Tính toán vị trí random an toàn không bị lố màn hình
+            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(10, Math.floor(Math.random() * maxY));
+
+            // Chuyển nút ra khỏi flexbox để dùng position absolute toàn màn hình
+            btnNo.style.position = 'fixed';
+            btnNo.style.left = randomX + 'px';
+            btnNo.style.top = randomY + 'px';
+        }
+
+        function setupNoButton() {
+            // Ràng buộc sự kiện click (áp dụng cho cả chạm trên điện thoại và click chuột)
+            btnNo.addEventListener('click', handleNoAction);
+        }
+
+        document.getElementById('btn-yes').addEventListener('click', () => {
+            switchScreen('screen6', 'screen7');
+            
+            // Chuyển nhạc
+            bgMusic1.pause();
+            bgMusic2.play().catch(e => console.log("Lỗi phát nhạc 2."));
+
+            // Đổi màu nền sang hồng rực rỡ để happy ending
+            document.body.style.background = "linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)";
+            // Tăng tốc độ rơi của tim
+            setInterval(createHearts, 150);
+        });
+
+
+        // --- HIỆU ỨNG TRÁI TIM RƠI ---
+        function createHearts() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerText = '❤';
+            
+            // Random kích thước, vị trí, thời gian rơi
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 4 + 's'; // 4 - 7s
+            const size = Math.random() * 1.5 + 0.5;
+            heart.style.fontSize = size + 'rem';
+
+            document.body.appendChild(heart);
+
+            // Xóa phần tử sau khi rơi xong
+            setTimeout(() => {
+                heart.remove();
+            }, 7000);
+        }
+        
+        // Thả tim lai rai lúc bắt đầu
+        setInterval(createHearts, 800);
+
+    </script>
+</body>
+</html>
